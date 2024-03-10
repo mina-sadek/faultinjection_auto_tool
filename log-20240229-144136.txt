@@ -1,0 +1,1 @@
+SUCCESS Paramters: repeat: 6400, ext_offset: 110050
