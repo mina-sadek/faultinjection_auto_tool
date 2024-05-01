@@ -6,8 +6,15 @@ import argparse
 import electromagnetic_fault_injection as emfi
 import voltage_fault_injection as vfi
 
+# Voltage Fault Injection against nRF52833:
+# python fault_injection.py -i jlink -d nrf52833 -r vdd -a vfi
+# Voltage Fault Injection against nRF52840:
+# python fault_injection.py -i jlink -d nrf52840 -r vdd -a vfi
+# Voltage Fault Injection against LPC1343:
+# python fault_injection.py -i cwLite -d lpc1434 -r rst -a vfi
+# Electromagnetic Fault Injection against nRF52840:
+# python fault_injection.py -i jlink -d nrf52840 -r rst -a emfi
 
-# python cwLite_DAP_CX.py -i cwLite -d lpc1434 -r rst -a vfi
 def parse_arguments():
     """Parse command-line arguments."""
     # Create argument parser
