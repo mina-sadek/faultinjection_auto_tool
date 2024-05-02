@@ -59,7 +59,7 @@ def main():
     
 
     if attack_option == 'emfi':
-        _emfi = emfi.electromagnetic_fault_injection(interface_option, device_option, reset_option)
+        _emfi = emfi.electromagnetic_fault_injection(interface_option, device_option, reset_option, 100, 1000, 10, 100, 110, 10)
         _emfi.run()
     else:       # elif attack_option == 'vfi':
         _vfi = vfi.voltage_fault_injection(interface_option, device_option, reset_option)

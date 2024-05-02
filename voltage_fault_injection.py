@@ -188,8 +188,6 @@ class voltage_fault_injection():
             gc.set_step("repeat", 50)
             gc.set_step("ext_offset", 50)
 
-            fulllog_fn = 'logs/log-' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
-
         # Running Glitch Attack
 
         if self.device_option == 'lpc1434':
@@ -250,6 +248,7 @@ class voltage_fault_injection():
 
                 self.scope.glitch.repeat += repeat_range.step
         else:
+            fulllog_fn = 'logs/log-' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
             for glitch_setting in gc.glitch_values():
                 # Prepare glitch parameters
                 # scope.glitch.repeat = glitch_setting[0]
