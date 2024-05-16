@@ -1,0 +1,1 @@
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-155711.bin 0x0 0x8000;exit"

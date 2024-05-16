@@ -1,0 +1,7 @@
+openocd -f ./openocd/nrf52833_jlink.cfg -c "init;dump_image logs/nrf52833_flashDump20240507-160720.bin 0x0 0x80000;exit"
+openocd -f ./openocd/nrf52833_jlink.cfg -c "init;dump_image logs/nrf52833_flashDump20240507-160720.bin 0x0 0x80000;exit"
+openocd -f ./openocd/nrf52833_jlink.cfg -c "init;dump_image logs/nrf52833_flashDump20240507-160721.bin 0x0 0x80000;exit"
+openocd -f ./openocd/nrf52833_jlink.cfg -c "init;dump_image logs/nrf52833_flashDump20240507-160722.bin 0x0 0x80000;exit"
+openocd -f ./openocd/nrf52833_jlink.cfg -c "init;dump_image logs/nrf52833_flashDump20240507-160722.bin 0x0 0x80000;exit"
+openocd -f ./openocd/nrf52833_jlink.cfg -c "init;dump_image logs/nrf52833_flashDump20240507-160723.bin 0x0 0x80000;exit"
+openocd -f ./openocd/nrf52833_jlink.cfg -c "init;dump_image logs/nrf52833_flashDump20240507-160723.bin 0x0 0x80000;exit"

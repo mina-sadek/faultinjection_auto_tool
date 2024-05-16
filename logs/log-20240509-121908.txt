@@ -1,0 +1,11 @@
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-121908.bin 0x0 0x8000;exit"
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-121909.bin 0x0 0x8000;exit"
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-121910.bin 0x0 0x8000;exit"
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-121911.bin 0x0 0x8000;exit"
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-121911.bin 0x0 0x8000;exit"
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-121912.bin 0x0 0x8000;exit"
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-121913.bin 0x0 0x8000;exit"
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-121914.bin 0x0 0x8000;exit"
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-121915.bin 0x0 0x8000;exit"
+openocd -f ./openocd/lpc1343_jlink.cfg -c "init;dump_image logs/lpc1343_flashDump20240509-121916.bin 0x0 0x8000;exit"
+SUCCESS Paramters: width: 101, offset: 4884

@@ -1,0 +1,1 @@
+openocd -f ./openocd/nrf52833_jlink.cfg -c "init;dump_image logs/nrf52833_flashDump20240507-154438.bin 0x0 0x80000;exit"

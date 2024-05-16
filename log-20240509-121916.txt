@@ -1,0 +1,1 @@
+SUCCESS Paramters: width: 101, offset: 4884
