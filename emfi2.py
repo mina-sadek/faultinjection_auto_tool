@@ -22,10 +22,11 @@ width_max_us   = 1000
 width_step_us  = 10
 
 class emfi():
-    def __init__(self, _interface_option, _device_option, _reset_option, _off_min_ns = offset_min_ns, _off_max_ns = offset_max_ns, _off_step_ns = offset_step_ns, _wid_min_us = width_min_us, _wid_max_us = width_max_us, _wid_step_us = width_step_us):
+    def __init__(self, _interface_option, _device_option, _verbose_option, _reset_option, _off_min_ns = offset_min_ns, _off_max_ns = offset_max_ns, _off_step_ns = offset_step_ns, _wid_min_us = width_min_us, _wid_max_us = width_max_us, _wid_step_us = width_step_us):
         self.interface_option = _interface_option
         self.device_option = _device_option
         self.reset_option = _reset_option
+        self.verbose_option = _verbose_option
         self.offset_min_ns  = _off_min_ns
         self.offset_max_ns  = _off_max_ns
         self.offset_step_ns = _off_step_ns

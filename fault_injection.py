@@ -19,6 +19,9 @@ import voltage_fault_injection as vfi
 # For locking the lpc1343 Device:
 # python fault_injection.py -i cwLite -d lpc1343 -a lck
 
+# STM32F1xx Voltage Fault Injection
+# https://habr.com/ru/companies/ntc-vulkan/articles/483732/
+
 def parse_arguments():
     """Parse command-line arguments."""
     # Create argument parser
@@ -27,6 +30,7 @@ def parse_arguments():
     parser.add_argument("-d", choices=['nrf52840', 'nrf52833', 'stm32', 'lpc1343'], help="Choose between 'nrf52840', 'nrf52833', 'stm32' and 'NXP lpc1343'", required=True)
     parser.add_argument("-r", choices=['vdd', 'rst'], help="Choose between 'VDD: Control Target's VDD Line' and 'RST: Control Target's RESET pin' - Default is 'vdd'")
     parser.add_argument("-a", choices=['vfi', 'emfi', 'lck'], help="Choose between 'Voltage Fault Injection Glitch' and 'ElectroMagnetic Fault Injection Glitch' or 'Lock attacked lpc1343 chip' - Default is 'vfi'")
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose mode')
     # parser.add_argument("-f", choices=['dap', 'is'], help="Choose between 'Debug Access Port (DAP) protection bypass' and 'Instruction Skipping' - Default is 'dap'")
     # Parse the arguments & return
     return parser.parse_args()
@@ -41,6 +45,7 @@ def main():
     reset_option = args.r
     attack_option = args.a
     # fault_option = args.f
+    verbose_option = args.verbose
 
     # Check if both options are provided
     if interface_option is None or device_option is None:
@@ -61,6 +66,8 @@ def main():
         attack_option = 'vfi'
         print("Default attack type:", attack_option)
     
+    if not (verbose_option):
+        verbose_option = False
 
     if attack_option == 'emfi':
         # _emfi = emfi.electromagnetic_fault_injection(interface_option, device_option, reset_option, 100, 1000, 10, 100, 110, 10)
@@ -68,13 +75,13 @@ def main():
         # _emfi = emfi.electromagnetic_fault_injection(interface_option, device_option, reset_option, 4880, 4910, 1, 100, 101, 1) # No width control
         # _emfi = emfi.electromagnetic_fault_injection(interface_option, device_option, reset_option, 4800, 5000, 1, 100, 101, 1) # No width control
         # Timings are in nanoseconds
-        _emfi = emfi.emfi(interface_option, device_option, reset_option, (48900-1100), (49000-1100), 10, (1000+200), (2000+200), 10) # No width control
+        _emfi = emfi.emfi(interface_option, device_option, reset_option, verbose_option, (48900-1100), (49000-1100), 10, (1000+200), (2000+200), 10) # No width control
         _emfi.run()
     elif attack_option == 'vfi':
-        _vfi = vfi.voltage_fault_injection(interface_option, device_option, reset_option)
+        _vfi = vfi.voltage_fault_injection(interface_option, device_option, reset_option, verbose_option)
         _vfi.run()
     elif attack_option == 'lck':
-        _vfi = vfi.voltage_fault_injection(interface_option, device_option, reset_option)
+        _vfi = vfi.voltage_fault_injection(interface_option, device_option, reset_option, verbose_option)
         _vfi.target_lock()
 
 
