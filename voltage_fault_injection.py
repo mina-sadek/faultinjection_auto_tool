@@ -237,25 +237,37 @@ class voltage_fault_injection():
             self.gc.set_range("repeat", 100, 300)              # Length of the glitch pulse    # testing for lpc1343
         else:
             # gc = cw.GlitchController(groups=["success", "reset", "normal"], parameters=["repeat", "ext_offset"])
-            gc = cw.GlitchController(groups=["success", "reset", "normal"], parameters=["ext_offset", "repeat"])
-            gc.set_global_step(1)
+            # gc = cw.GlitchController(groups=["success", "reset", "normal"], parameters=["ext_offset", "repeat"])
+            # gc.set_global_step(1)
             if self.device_option == 'stm32':
-                # gc.set_range("ext_offset", 290000, 310000)  # Time after trigger to glitch, in CW clock cycles. # successful for nRF52833
-                # gc.set_range("ext_offset", 16980, 20000)         # 160us to 200us
-                gc.set_range("ext_offset", 12000, 20000)         # 160us to 200us
-                # gc.set_range("repeat", 100, 8190)              # Length of the glitch pulse # Full Range from 1usec to 81.9usec
-                # gc.set_range("repeat", 100, 1000)              # Length of the glitch pulse # Full Range from 1usec to 10usec
-                # gc.set_range("repeat", 20, 100)              # Length of the glitch pulse # Full Range from 1usec to 10usec
-                gc.set_range("repeat", 20, 200)              # Length of the glitch pulse # Full Range from 1usec to 10usec
-                # gc.set_range("repeat", 80, 200)              # Length of the glitch pulse # Full Range from 1usec to 10usec
-                # gc.set_range("repeat", 5000, 8190)              # Length of the glitch pulse    # successful for nRF52833
-                # gc.set_range("repeat", 100, 60000)              # Length of the glitch pulse
-                # gc.set_step("repeat", 50)           # repeat step is 0.5usec
-                # gc.set_step("ext_offset", 50)       # offset step is 0.5usec
-                # gc.set_step("repeat", 10)           # repeat step is 0.1usec
-                gc.set_step("repeat", 1)           # repeat step is 0.1usec
-                gc.set_step("ext_offset", 1)       # offset step is 0.1usec
+                # gc = cw.GlitchController(groups=["success", "reset", "normal"], parameters=["ext_offset", "repeat"])
+                gc = cw.GlitchController(groups=["success", "reset", "normal"], parameters=["repeat", "ext_offset"])
+                gc.set_global_step(1)
+                # # gc.set_range("ext_offset", 290000, 310000)  # Time after trigger to glitch, in CW clock cycles. # successful for nRF52833
+                # # gc.set_range("ext_offset", 16980, 20000)         # 160us to 200us
+                # gc.set_range("ext_offset", 16160, 20000)         # 160us to 200us
+                # # gc.set_range("repeat", 100, 8190)              # Length of the glitch pulse # Full Range from 1usec to 81.9usec
+                # # gc.set_range("repeat", 100, 1000)              # Length of the glitch pulse # Full Range from 1usec to 10usec
+                # # gc.set_range("repeat", 20, 100)              # Length of the glitch pulse # Full Range from 1usec to 10usec
+                # # gc.set_range("repeat", 240, 250)              # Length of the glitch pulse # Full Range from 1usec to 10usec
+                # gc.set_range("repeat", 50, 250)              # Length of the glitch pulse # Full Range from 1usec to 10usec
+                # # gc.set_range("repeat", 80, 200)              # Length of the glitch pulse # Full Range from 1usec to 10usec
+                # # gc.set_range("repeat", 5000, 8190)              # Length of the glitch pulse    # successful for nRF52833
+                # # gc.set_range("repeat", 100, 60000)              # Length of the glitch pulse
+                # # gc.set_step("repeat", 50)           # repeat step is 0.5usec
+                # # gc.set_step("ext_offset", 50)       # offset step is 0.5usec
+                # # gc.set_step("repeat", 10)           # repeat step is 0.1usec
+                # gc.set_step("repeat", 1)           # repeat step is 0.1usec
+                # gc.set_step("ext_offset", 1)       # offset step is 0.1usec
+
+                self.scope.glitch.width = 40
+                self.scope.glitch.offset = -45
+                gc.set_range("ext_offset", 19000, 19800)
+                gc.set_range("repeat", 50, 200)
+
             else:
+                gc = cw.GlitchController(groups=["success", "reset", "normal"], parameters=["ext_offset", "repeat"])
+                gc.set_global_step(1)
                 # gc.set_range("repeat", 5, 20)              # Length of the glitch pulse
                 # gc.set_range("repeat", 1, 50)              # Length of the glitch pulse
                 # gc.set_range("ext_offset", 102500, 104500)  # Time after trigger to glitch, in CW clock cycles.
@@ -384,10 +396,14 @@ class voltage_fault_injection():
             fulllog_fn = 'logs/log-' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
             for glitch_setting in gc.glitch_values():
                 # Prepare glitch parameters
-                # scope.glitch.repeat = glitch_setting[0]
-                # scope.glitch.ext_offset = glitch_setting[1]
-                self.scope.glitch.ext_offset = glitch_setting[0]
-                self.scope.glitch.repeat = glitch_setting[1]
+                if self.device_option == 'stm32':
+                    self.scope.glitch.repeat = glitch_setting[0]
+                    self.scope.glitch.ext_offset = glitch_setting[1]
+                else:
+                    # scope.glitch.repeat = glitch_setting[0]
+                    # scope.glitch.ext_offset = glitch_setting[1]
+                    self.scope.glitch.ext_offset = glitch_setting[0]
+                    self.scope.glitch.repeat = glitch_setting[1]
 
                 # scope.glitch.ext_offset = 102500
                 # scope.glitch.repeat = 2
@@ -395,7 +411,8 @@ class voltage_fault_injection():
                 # Reboot the Target & arm the scope
                 self.reboot_flush(self.scope, self.reset_option)
 
-                time.sleep(0.15)
+                # time.sleep(0.15)
+                time.sleep(0.0001)
                 timestr = time.strftime("%Y%m%d-%H%M%S")
                 # binfilename = 'logs/nrf52_flash' + timestr + '.bin'
                 # openocd_str = 'openocd -f ./openocd/nrf52840.cfg -c "init;dump_image ' + binfilename + ' 0x0 0x80000;exit"'

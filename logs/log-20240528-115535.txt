@@ -1,0 +1,2 @@
+openocd -f ./openocd/stm32_stlink.cfg -c "init;dump_image logs/stm32_flashDump20240528-115536.bin 0x8000000 0x20000;exit"
+openocd -f ./openocd/stm32_stlink.cfg -c "init;dump_image logs/stm32_flashDump20240528-115538.bin 0x8000000 0x20000;exit"

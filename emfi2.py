@@ -272,7 +272,8 @@ class emfi():
         self.cw_PicoEMP_settings_config()
 
         # pico = csPicoEMP.ChipShouterPicoEMP('/dev/ttyACM1')
-        pico = csPicoEMP.ChipShouterPicoEMP('/dev/ttyACM0')
+        # pico = csPicoEMP.ChipShouterPicoEMP('/dev/ttyACM0')
+        pico = csPicoEMP.ChipShouterPicoEMP()
         pico.setup_external_control()
 
         self.reset_dut()

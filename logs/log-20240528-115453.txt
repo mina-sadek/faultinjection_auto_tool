@@ -1,0 +1,5 @@
+openocd -f ./openocd/stm32_stlink.cfg -c "init;dump_image logs/stm32_flashDump20240528-115454.bin 0x8000000 0x20000;exit"
+openocd -f ./openocd/stm32_stlink.cfg -c "init;dump_image logs/stm32_flashDump20240528-115456.bin 0x8000000 0x20000;exit"
+openocd -f ./openocd/stm32_stlink.cfg -c "init;dump_image logs/stm32_flashDump20240528-115458.bin 0x8000000 0x20000;exit"
+openocd -f ./openocd/stm32_stlink.cfg -c "init;dump_image logs/stm32_flashDump20240528-115500.bin 0x8000000 0x20000;exit"
+openocd -f ./openocd/stm32_stlink.cfg -c "init;dump_image logs/stm32_flashDump20240528-115502.bin 0x8000000 0x20000;exit"
