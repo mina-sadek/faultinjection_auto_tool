@@ -97,16 +97,9 @@ def fault_injection(interface_option, device_option, reset_option, attack_option
     print(f"Reset: {reset_option}")
     print(f"Attack: {attack_option}")
     print(f"Verbose: {verbose_option}")
-    # Simulate some processing
-    # for i in range(5):
-    #     print(f"Processing item {i+1}...")
-    #     # Replace this with your actual logic
+    print('-'*50)
 
     if attack_option == 'emfi':
-        # _emfi = emfi.electromagnetic_fault_injection(interface_option, device_option, reset_option, 100, 1000, 10, 100, 110, 10)
-        # _emfi = emfi.electromagnetic_fault_injection(interface_option, device_option, reset_option, 4500, 5500, 1, 100, 101, 1) # No width control
-        # _emfi = emfi.electromagnetic_fault_injection(interface_option, device_option, reset_option, 4880, 4910, 1, 100, 101, 1) # No width control
-        # _emfi = emfi.electromagnetic_fault_injection(interface_option, device_option, reset_option, 4800, 5000, 1, 100, 101, 1) # No width control
         # Timings are in nanoseconds
         _emfi = emfi.emfi(interface_option, device_option, reset_option, verbose_option, (48900-1100), (49000-1100), 10, (1000+200), (2000+200), 10) # No width control
         _emfi.run()
@@ -143,12 +136,6 @@ def main_gui():
         verbose = verbose_var.get()
 
         output_text.delete(1.0, tk.END)  # Clear previous output
-        # threading.Thread(target=GUI_fault_injection_run, args=(selected_values, verbose)).start()
-
-        # # Create a queue to communicate with the GUI thread
-        # output_queue = queue.Queue()
-        # # Start the fault_injection in a new thread
-        # threading.Thread(target=GUI_fault_injection_run, args=(selected_values, verbose, output_queue)).start()
 
         # Start the fault_injection in a new process
         process = multiprocessing.Process(target=GUI_fault_injection_run, args=(selected_values, verbose, output_queue))
@@ -173,9 +160,10 @@ def main_gui():
             stop_button.config(state=tk.DISABLED)
         
     def exit_function():
-        if process.is_alive():
-            process.terminate()
-            process.join()
+        if (process):
+            if process.is_alive():
+                process.terminate()
+                process.join()
         root.quit()
 
     def GUI_fault_injection_run(selected_values, verbose, output_queue):
@@ -210,19 +198,6 @@ def main_gui():
         # Check the queue again after 100 ms
         root.after(100, GUI_update_output, output_queue)
 
-    # def GUI_update_output(output_queue):
-    #     while not output_queue.empty():
-    #         line = output_queue.get_nowait()
-    #         if line is None:
-    #             # Re-enable the start button after function execution
-    #             start_button.config(state=tk.NORMAL)
-    #             return
-    #         output_text.insert(tk.END, line + "\n")
-    #         output_text.see(tk.END)  # Auto-scroll to the end
-
-    #     # Check the queue again after 100 ms
-    #     root.after(100, GUI_update_output, output_queue)
-
     def GUI_append_text(output):
         output_text.insert(tk.END, output)
         output_text.see(tk.END)  # Auto-scroll to the end
@@ -245,7 +220,8 @@ def main_gui():
     style.configure('TLabel', font=('Helvetica', 14))
     style.configure('TButton', font=('Helvetica', 14))
     style.configure('TCombobox', font=('Helvetica', 14))
-    style.configure('TCheckbutton', font=('Helvetica', 14))
+    # style.configure('TCheckbutton', font=('Helvetica', 14))
+    style.configure('TCheckbutton', font=('Helvetica', 14), padding=10)  # Increase font size and padding
 
     # Create dropdown menus
     ttk.Label(root, text="Interface:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
@@ -260,27 +236,11 @@ def main_gui():
     # Add a checkbox for verbose mode
     verbose_var = tk.BooleanVar()
     # ttk.Checkbutton(root, text="Verbose?", variable=verbose_var).grid(row=4, column=0, padx=10, pady=10, sticky="e")
-    ttk.Checkbutton(root, text="Verbose?", variable=verbose_var).grid(row=4, columnspan=2, padx=10, pady=10, sticky="w")
+    # ttk.Checkbutton(root, text="Verbose?", variable=verbose_var).grid(row=4, columnspan=2, padx=10, pady=10, sticky="w")
 
-
-    # # Create dropdown menus
-    # ttk.Label(root, text="Interface:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-    # ttk.Combobox(root, textvariable=dropdown_vars[0], values=interfaces).grid(row=0, column=1, padx=10, pady=5)
-    # ttk.Label(root, text="Device:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-    # ttk.Combobox(root, textvariable=dropdown_vars[1], values=devices).grid(row=1, column=1, padx=10, pady=5)
-    # ttk.Label(root, text="Reset:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-    # ttk.Combobox(root, textvariable=dropdown_vars[2], values=resets).grid(row=2, column=1, padx=10, pady=5)
-    # ttk.Label(root, text="Attack:").grid(row=3, column=0, padx=10, pady=5, sticky="w")
-    # ttk.Combobox(root, textvariable=dropdown_vars[3], values=attacks).grid(row=3, column=1, padx=10, pady=5)
-
-    # # Add a checkbox for verbose mode
-    # verbose_var = tk.BooleanVar()
-    # ttk.Checkbutton(root, text="Verbose", variable=verbose_var).grid(row=4, columnspan=2, padx=10, pady=5)
-
-    # Create and place the buttons
-    # start_button = tk.Button(root, text="Start Fault Injection Attack", command=GUI_start_function)
-    # # start_button.grid(row=5, columnspan=2, padx=10, pady=10)
-    # start_button.grid(row=5, columnspan=2, padx=10, pady=20)
+    # verbose_checkbutton = ttk.Checkbutton(root, text="Verbose?", variable=verbose_var)
+    verbose_checkbutton = ttk.Checkbutton(root, text="Verbose", variable=verbose_var, compound='left')  # Adjust compound option
+    verbose_checkbutton.grid(row=4, columnspan=2, padx=10, pady=10, sticky="w")
 
     # Create and place the buttons
     start_button = ttk.Button(root, text="Start Fault Injection Attack", command=GUI_start_function)
@@ -300,27 +260,12 @@ def main_gui():
     root.grid_rowconfigure(8, weight=1)
     root.grid_columnconfigure(1, weight=1)
 
-    # # Create and place the text widget for displaying terminal output
-    # output_text = tk.Text(root, height=20, width=80, wrap=tk.WORD, font=("Helvetica", 12))
-    # output_text.grid(row=6, columnspan=2, padx=10, pady=10, sticky="nsew")
-
-    # # Configure grid to make the text widget expandable
-    # root.grid_rowconfigure(6, weight=1)
-    # root.grid_columnconfigure(1, weight=1)
-
-    # # Create and place the text widget for displaying terminal output
-    # output_text = tk.Text(root, height=20, width=80, wrap=tk.WORD, font=("Helvetica", 14))
-    # output_text.grid(row=6, columnspan=2, padx=10, pady=10, sticky="nsew")
-    # # # Create and place the text widget for displaying terminal output
-    # # output_text = tk.Text(root, height=10, width=50)
-    # # output_text.grid(row=6, columnspan=2, padx=10, pady=10)
-
-    # # Configure grid to make the text widget expandable
-    # root.grid_rowconfigure(6, weight=1)
-    # root.grid_columnconfigure(1, weight=1)
-
     # Start the main event loop
     root.mainloop()
+
+# Global variable to hold the process and output queue
+process = None
+output_queue = None
 
 if __name__ == "__main__":
     # main()
@@ -329,62 +274,3 @@ if __name__ == "__main__":
         main_gui()
     else:
         main_cli()
-
-
-
-
-# def start_function():
-#     # Retrieve values from dropdowns
-#     selected_values = [var.get() for var in dropdown_vars]
-#     verbose = verbose_var.get()
-
-#     # Redirect stdout to capture the function output
-#     old_stdout = sys.stdout
-#     sys.stdout = mystdout = io.StringIO()
-
-#     # Call the fault_injection function with selected values
-#     # fault_injection(*selected_values, verbose)
-#     for i in range(1, 100000000):
-#         print("hellooooooo")
-
-#     # Reset stdout
-#     sys.stdout = old_stdout
-
-#     # Display function output in the text widget
-#     output_text.delete(1.0, tk.END)
-#     output_text.insert(tk.END, mystdout.getvalue())
-#     output_text.see(tk.END)  # Auto-scroll to the end
-
-
-# # Create the main window
-# root = tk.Tk()
-# root.title("Python GUI with Dropdowns and Terminal Output")
-
-# # Create variables for the dropdown menus
-# dropdown_vars = [tk.StringVar(value=interfaces[0]), tk.StringVar(value=devices[0]), 
-#                  tk.StringVar(value=resets[0]), tk.StringVar(value=attacks[0])]
-
-# # Create dropdown menus
-# ttk.Label(root, text="Interface:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-# ttk.Combobox(root, textvariable=dropdown_vars[0], values=interfaces).grid(row=0, column=1, padx=10, pady=5)
-# ttk.Label(root, text="Device:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-# ttk.Combobox(root, textvariable=dropdown_vars[1], values=devices).grid(row=1, column=1, padx=10, pady=5)
-# ttk.Label(root, text="Reset:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-# ttk.Combobox(root, textvariable=dropdown_vars[2], values=resets).grid(row=2, column=1, padx=10, pady=5)
-# ttk.Label(root, text="Attack:").grid(row=3, column=0, padx=10, pady=5, sticky="w")
-# ttk.Combobox(root, textvariable=dropdown_vars[3], values=attacks).grid(row=3, column=1, padx=10, pady=5)
-
-# # Add a checkbox for verbose mode
-# verbose_var = tk.BooleanVar()
-# ttk.Checkbutton(root, text="Verbose", variable=verbose_var).grid(row=4, columnspan=2, padx=10, pady=5)
-
-# # Create and place the text widget for displaying terminal output
-# output_text = tk.Text(root, height=10, width=50)
-# output_text.grid(row=6, columnspan=2, padx=10, pady=10)
-
-# # Create and place the button
-# start_button = tk.Button(root, text="Start Function", command=start_function)
-# start_button.grid(row=5, columnspan=2, padx=10, pady=10)
-
-# # Start the main event loop
-# root.mainloop()
